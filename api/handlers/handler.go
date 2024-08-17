@@ -1,16 +1,29 @@
 package handlers
 
 import (
+	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
+	_ "image/png"
+	"mime/multipart"
 	"net/http"
+	"os"
 
+	"github.com/anandh86/instagram/models"
+	"github.com/anandh86/instagram/services"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
+	service *services.Service
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+// TODO : Fix the interface handling
+func NewHandler(service *services.Service) *Handler {
+	return &Handler{
+		service: service,
+	}
 }
 
 func (h *Handler) CreatePost(c *gin.Context) {
@@ -33,7 +46,30 @@ func (h *Handler) CreatePost(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"post_Id": "1234"})
+	post_img, format, imgErr := h.processImage(fileHeader)
+
+	if imgErr != nil || post_img == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error processing image file"})
+		return
+	}
+
+	if format != "png" && format != "jpeg" && format != "jpg" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid format"})
+	}
+
+	postRequestDTO := models.PostRequestDTO{
+		Caption:  caption,
+		AuthorId: "1234",
+	}
+
+	post_id, post_err := h.service.CreatePost(post_img, postRequestDTO)
+
+	if post_err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error creating post"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"post_Id": post_id})
 
 }
 
@@ -45,8 +81,20 @@ func (h *Handler) GetPostById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"post_id": post_Id})
+	post_img, _, err := h.service.GetPostById(post_Id)
 
+	if err != nil || post_img == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting post"})
+		return
+	}
+
+	c.Header("Content-Type", "image/png")
+	encodeErr := png.Encode(c.Writer, post_img)
+
+	if encodeErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to encode image"})
+		return
+	}
 }
 
 func (h *Handler) CommentOnPost(c *gin.Context) {
@@ -104,4 +152,33 @@ func (h *Handler) ViewTimeline(c *gin.Context) {
 	// Respond to the client
 	c.JSON(http.StatusOK, gin.H{"timeline for user": requestBody.UserId})
 
+}
+
+func (h *Handler) loadJPGImage(filePath string) (image.Image, error) {
+	// Open the file
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open image file: %w", err)
+	}
+	defer file.Close()
+
+	// Decode the image
+	img, err := jpeg.Decode(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	return img, nil
+}
+
+func (h *Handler) processImage(fileHeader *multipart.FileHeader) (image.Image, string, error) {
+	// Open the file
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, "", err
+	}
+	defer file.Close()
+
+	// Decode the image
+	return image.Decode(file)
 }
