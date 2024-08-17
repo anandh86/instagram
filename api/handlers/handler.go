@@ -3,7 +3,6 @@ package handlers
 import (
 	"image"
 	"image/png"
-	_ "image/png"
 	"mime/multipart"
 	"net/http"
 
