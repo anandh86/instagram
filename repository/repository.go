@@ -16,7 +16,7 @@ type IRepository interface {
 	// Get Post Metadata by ID
 	GetPostMetaByID(post_id string) (postMeta models.PostMeta, err error)
 	// Save a Comment on a Post
-	SaveComment(comment models.Comment) (comment_id string, err error)
+	SaveComment(comment models.CommentRequestDTO) (comment_id string, err error)
 	// Retrieve a Comment on a Post
 	GetCommentByID(comment_id string) (comment models.Comment, err error)
 	// Delete a Comment on a Post

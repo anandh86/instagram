@@ -113,8 +113,21 @@ func (h *Handler) CommentOnPost(c *gin.Context) {
 		return
 	}
 
+	commentRequestDTO := models.CommentRequestDTO{
+		Comment:  requestBody.Comment,
+		PostId:   requestBody.PostId,
+		AuthorId: requestBody.UserId,
+	}
+
+	comment_id, err := h.service.CommentOnPost(commentRequestDTO)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating comment"})
+		return
+	}
+
 	// Respond to the client
-	c.JSON(http.StatusCreated, gin.H{"comment_id": "1234"})
+	c.JSON(http.StatusCreated, gin.H{"comment_id": comment_id})
 
 }
 
@@ -123,6 +136,24 @@ func (h *Handler) DeleteComment(c *gin.Context) {
 
 	if comment_Id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid comment ID"})
+		return
+	}
+
+	var requestBody struct {
+		PostId   string `json:"post_id"`
+		AuthorId string `json:"author_id"`
+	}
+
+	// Bind the JSON request
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.DeleteComment(comment_Id, requestBody.AuthorId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting comment"})
 		return
 	}
 

@@ -12,6 +12,10 @@ type PostService interface {
 	CreatePost(post_img image.Image, post_info models.PostRequestDTO) (post_id string, err error)
 
 	GetPostById(id string) (post_img image.Image, post_info models.PostResponseDTO, err error)
+
+	CommentOnPost(comment models.CommentRequestDTO) (comment_id string, err error)
+
+	DeleteComment(comment_id, author_id string) (err error)
 }
 
 type Service struct {
@@ -62,4 +66,32 @@ func (s *Service) GetPostById(post_id string) (post_img image.Image, post_info m
 	}
 
 	return post_img, post_info, nil
+}
+
+func (s *Service) CommentOnPost(comment models.CommentRequestDTO) (comment_id string, err error) {
+	// Implement the logic to create a new post
+
+	// Check for validity of post id
+	_, post_err := s.repo.GetPostMetaByID(comment.PostId)
+
+	if post_err != nil {
+		return "", errors.New("error retrieving post")
+	}
+
+	return s.repo.SaveComment(comment)
+}
+
+func (s *Service) DeleteComment(comment_id, author_id string) (err error) {
+	// Implement the logic to retrieve a post by ID
+	comment, err := s.repo.GetCommentByID(comment_id)
+
+	if err != nil {
+		return errors.New("error retrieving comment")
+	}
+
+	if comment.AuthorId != author_id {
+		return errors.New("unauthorized")
+	}
+
+	return s.repo.DeleteCommentByID(comment_id)
 }

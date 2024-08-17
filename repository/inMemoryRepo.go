@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"image"
+	"time"
 
 	"github.com/anandh86/instagram/models"
 	"github.com/google/uuid"
@@ -10,9 +11,10 @@ import (
 
 // InMemoryRepo is an in-memory implementation of IRepository
 type InMemoryRepo struct {
-	images   map[string]image.Image
-	posts    map[string]models.PostMeta
-	comments map[string]models.Comment
+	images          map[string]image.Image
+	posts           map[string]models.PostMeta
+	comments        map[string]models.Comment
+	postCommentsMap map[string][]string
 }
 
 // NewInMemoryRepo creates a new instance of InMemoryRepo
@@ -22,6 +24,41 @@ func NewInMemoryRepo() *InMemoryRepo {
 		posts:    make(map[string]models.PostMeta),
 		comments: make(map[string]models.Comment),
 	}
+}
+
+func (repo *InMemoryRepo) appendPostCommentsMap(post_id string, comment_id string) error {
+	postComments, exists := repo.postCommentsMap[post_id]
+	if !exists {
+		repo.postCommentsMap[post_id] = []string{comment_id}
+		return nil
+	}
+	repo.postCommentsMap[post_id] = append(postComments, comment_id)
+	return nil
+}
+
+func (repo *InMemoryRepo) removePostCommentsMap(post_id string, comment_id string) error {
+	postComments, exists := repo.postCommentsMap[post_id]
+
+	if !exists {
+		return errors.New("post not found")
+	}
+
+	for i, comment := range postComments {
+		if comment == comment_id {
+			repo.postCommentsMap[post_id] = append(postComments[:i], postComments[i+1:]...)
+			return nil
+		}
+	}
+
+	return errors.New("comment not found")
+}
+
+func (repo *InMemoryRepo) getPostCommentsMap(post_id string) ([]string, error) {
+	postComments, exists := repo.postCommentsMap[post_id]
+	if !exists {
+		return nil, errors.New("post not found")
+	}
+	return postComments, nil
 }
 
 // SaveImage saves an image to the in-memory database
@@ -58,11 +95,19 @@ func (repo *InMemoryRepo) GetPostMetaByID(postID string) (models.PostMeta, error
 }
 
 // SaveComment saves a comment to the in-memory database
-func (repo *InMemoryRepo) SaveComment(comment models.Comment) (string, error) {
-	commentID := uuid.New().String()
-	comment.Id = commentID
-	repo.comments[commentID] = comment
-	return commentID, nil
+func (repo *InMemoryRepo) SaveComment(reqComment models.CommentRequestDTO) (string, error) {
+	comment := models.Comment{
+		Id:        uuid.New().String(),
+		Comment:   reqComment.Comment,
+		PostId:    reqComment.PostId,
+		AuthorId:  reqComment.AuthorId,
+		CreatedAt: time.Now(),
+	}
+
+	repo.appendPostCommentsMap(reqComment.PostId, comment.Id)
+
+	repo.comments[comment.Id] = comment
+	return comment.Id, nil
 }
 
 // GetCommentByID retrieves a comment by its ID
@@ -76,9 +121,14 @@ func (repo *InMemoryRepo) GetCommentByID(commentID string) (models.Comment, erro
 
 // DeleteCommentByID deletes a comment by its ID
 func (repo *InMemoryRepo) DeleteCommentByID(commentID string) error {
-	if _, exists := repo.comments[commentID]; !exists {
+	db_comment, exists := repo.comments[commentID]
+
+	if !exists {
 		return errors.New("comment not found")
 	}
+
 	delete(repo.comments, commentID)
+	repo.removePostCommentsMap(db_comment.PostId, commentID)
+
 	return nil
 }

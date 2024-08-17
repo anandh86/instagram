@@ -33,3 +33,9 @@ type Comment struct {
 	CreatedAt time.Time `json:"created_at"`
 	AuthorId  string    `json:"author_id"`
 }
+
+type CommentRequestDTO struct {
+	PostId   string `json:"post_id"`
+	Comment  string `json:"comment"`
+	AuthorId string `json:"author_id"`
+}
