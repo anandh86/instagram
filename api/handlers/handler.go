@@ -1,14 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"image"
-	"image/jpeg"
 	"image/png"
 	_ "image/png"
 	"mime/multipart"
 	"net/http"
-	"os"
 
 	"github.com/anandh86/instagram/models"
 	"github.com/anandh86/instagram/services"
@@ -152,23 +149,6 @@ func (h *Handler) ViewTimeline(c *gin.Context) {
 	// Respond to the client
 	c.JSON(http.StatusOK, gin.H{"timeline for user": requestBody.UserId})
 
-}
-
-func (h *Handler) loadJPGImage(filePath string) (image.Image, error) {
-	// Open the file
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open image file: %w", err)
-	}
-	defer file.Close()
-
-	// Decode the image
-	img, err := jpeg.Decode(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode image: %w", err)
-	}
-
-	return img, nil
 }
 
 func (h *Handler) processImage(fileHeader *multipart.FileHeader) (image.Image, string, error) {
