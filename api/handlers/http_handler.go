@@ -169,8 +169,8 @@ func (h *Handler) DeleteComment(c *gin.Context) {
 		return
 	}
 
+	// TODO : This can be fetched from JWT token (when implemented)
 	var requestBody struct {
-		PostId   string `json:"post_id"`
 		AuthorId string `json:"author_id"`
 	}
 
