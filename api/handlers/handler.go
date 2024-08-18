@@ -93,6 +93,33 @@ func (h *Handler) GetPostById(c *gin.Context) {
 	}
 }
 
+func (h *Handler) GetAllPosts(c *gin.Context) {
+
+	postsMetaDatas, err := h.service.GetAllPosts()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get posts"})
+		return
+	}
+
+	var responses []models.PostResponseDTO
+
+	for _, postMeta := range postsMetaDatas {
+
+		postResponse := models.PostResponseDTO{
+			Id:       postMeta.Id,
+			Caption:  postMeta.Caption,
+			AuthorId: postMeta.AuthorId,
+			Comments: postMeta.Comments,
+		}
+
+		responses = append(responses, postResponse)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"posts": responses})
+
+}
+
 func (h *Handler) CommentOnPost(c *gin.Context) {
 
 	var requestBody struct {

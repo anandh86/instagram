@@ -8,6 +8,7 @@ type PostMeta struct {
 	CreatedAt time.Time `json:"created_at"`
 	ImageId   string    `json:"image_id"`
 	AuthorId  string    `json:"author_id"`
+	Comments  []string  `json:"comments"`
 }
 
 type PostRequestDTO struct {

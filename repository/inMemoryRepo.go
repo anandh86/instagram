@@ -20,10 +20,19 @@ type InMemoryRepo struct {
 // NewInMemoryRepo creates a new instance of InMemoryRepo
 func NewInMemoryRepo() *InMemoryRepo {
 	return &InMemoryRepo{
-		images:   make(map[string]image.Image),
-		posts:    make(map[string]models.PostMeta),
-		comments: make(map[string]models.Comment),
+		images:          make(map[string]image.Image),
+		posts:           make(map[string]models.PostMeta),
+		comments:        make(map[string]models.Comment),
+		postCommentsMap: make(map[string][]string),
 	}
+}
+
+func (repo *InMemoryRepo) GetAllPostMetas() ([]models.PostMeta, error) {
+	posts := make([]models.PostMeta, 0, len(repo.posts))
+	for _, post := range repo.posts {
+		posts = append(posts, post)
+	}
+	return posts, nil
 }
 
 func (repo *InMemoryRepo) appendPostCommentsMap(post_id string, comment_id string) error {
@@ -53,7 +62,7 @@ func (repo *InMemoryRepo) removePostCommentsMap(post_id string, comment_id strin
 	return errors.New("comment not found")
 }
 
-func (repo *InMemoryRepo) getPostCommentsMap(post_id string) ([]string, error) {
+func (repo *InMemoryRepo) GetPostCommentsMap(post_id string) ([]string, error) {
 	postComments, exists := repo.postCommentsMap[post_id]
 	if !exists {
 		return nil, errors.New("post not found")

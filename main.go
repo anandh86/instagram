@@ -17,6 +17,7 @@ func main() {
 
 	r.POST("/api/posts", handler.CreatePost)
 	r.GET("/api/posts/:id", handler.GetPostById)
+	r.GET("/api/posts", handler.GetAllPosts)
 	r.POST("/api/comments", handler.CommentOnPost)
 	r.DELETE("/api/comments/:id", handler.DeleteComment)
 	r.GET("/api/timeline", handler.ViewTimeline)

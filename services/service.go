@@ -9,6 +9,7 @@ import (
 )
 
 type PostService interface {
+	// TODO : Remove all response DTOs? It should only be part of handler?
 	CreatePost(post_img image.Image, post_info models.PostRequestDTO) (post_id string, err error)
 
 	GetPostById(id string) (post_img image.Image, post_info models.PostResponseDTO, err error)
@@ -68,6 +69,32 @@ func (s *Service) GetPostById(post_id string) (post_img image.Image, post_info m
 	return post_img, post_info, nil
 }
 
+func (s *Service) GetAllPosts() (posts []models.PostMeta, err error) {
+	// Implement the logic to retrieve all posts
+	postMetaDatas, err := s.repo.GetAllPostMetas()
+	var RetPostMetaDatas []models.PostMeta
+
+	if err != nil {
+		return nil, errors.New("error retrieving posts")
+	}
+
+	for _, post_meta := range postMetaDatas {
+
+		comments, _ := s.GetPostComments(post_meta.Id)
+
+		var commentTexts []string
+		for _, c := range comments {
+			commentTexts = append(commentTexts, c.Comment)
+		}
+
+		post_meta.Comments = commentTexts
+
+		RetPostMetaDatas = append(RetPostMetaDatas, post_meta)
+	}
+
+	return RetPostMetaDatas, nil
+}
+
 func (s *Service) CommentOnPost(comment models.CommentRequestDTO) (comment_id string, err error) {
 	// Implement the logic to create a new post
 
@@ -94,4 +121,21 @@ func (s *Service) DeleteComment(comment_id, author_id string) (err error) {
 	}
 
 	return s.repo.DeleteCommentByID(comment_id)
+}
+
+func (s *Service) GetPostComments(post_id string) (comments []models.Comment, err error) {
+	// Implement the logic to retrieve a post by ID
+	post_comments, err := s.repo.GetPostCommentsMap(post_id)
+
+	if err != nil {
+		return nil, errors.New("error retrieving comments")
+	}
+
+	for _, comment_id := range post_comments {
+		comment, _ := s.repo.GetCommentByID(comment_id)
+
+		comments = append(comments, comment)
+	}
+
+	return comments, nil
 }
