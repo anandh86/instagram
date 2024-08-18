@@ -12,13 +12,13 @@ import (
 )
 
 type Handler struct {
-  service service.IService
+	service service.IService
 }
 
-func NewHandler(serv service.IService) *Handler  {
-  return &Handler{
-    service: serv,
-  }
+func NewHandler(serv service.IService) *Handler {
+	return &Handler{
+		service: serv,
+	}
 }
 
 func (h *Handler) CreatePost(c *gin.Context) {

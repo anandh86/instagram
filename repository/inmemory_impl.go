@@ -21,8 +21,8 @@ type InMemoryRepo struct {
 // NewInMemoryRepo creates a new instance of InMemoryRepo
 func NewInMemoryRepo() *InMemoryRepo {
 
-  // compile-time check to ensure we implement the interface
-  var _ IRepository = (*InMemoryRepo)(nil)
+	// compile-time check to ensure we implement the interface
+	var _ IRepository = (*InMemoryRepo)(nil)
 
 	return &InMemoryRepo{
 		images:          make(map[string]image.Image),

@@ -14,8 +14,8 @@ type Service struct {
 
 func NewService(repository repository.IRepository) *Service {
 
-  // compile-time check to ensure we implement the interface
-  var _ IService = (*Service)(nil)
+	// compile-time check to ensure we implement the interface
+	var _ IService = (*Service)(nil)
 
 	return &Service{
 		repo: repository,
@@ -100,9 +100,11 @@ func (s *Service) GetAllPosts() (posts []models.PostMetaDTO, err error) {
 	return RetPostMetaDatas, nil
 }
 
-/*------------------------------------------------------------------------
+/*
+------------------------------------------------------------------------
 *                             Comment
-------------------------------------------------------------------------*/
+------------------------------------------------------------------------
+*/
 func (s *Service) CommentOnPost(comment models.CommentRequestDTO) (comment_id string, err error) {
 	// Implement the logic to create a new post
 
