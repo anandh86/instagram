@@ -112,6 +112,7 @@ func (h *Handler) GetAllPosts(c *gin.Context) {
 			Id:       postMeta.Id,
 			Caption:  postMeta.Caption,
 			AuthorId: postMeta.Creator,
+			ImageId:  postMeta.ImageId,
 			Comments: postMeta.Comments,
 		}
 

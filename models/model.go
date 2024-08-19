@@ -24,6 +24,7 @@ type PostResponseDTO struct {
 	Id       string               `json:"id"`
 	Caption  string               `json:"caption"`
 	AuthorId string               `json:"creator_id"`
+	ImageId  string               `json:"image_id"`
 	Comments []CommentResponseDTO `json:"comments"`
 }
 
